@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dosh!M8 Waitlist</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f7f9fb;
+      color: #1f2937;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      padding: 2rem;
+    }
+    .card {
+      background: white;
+      border-radius: 1rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      padding: 2rem;
+      max-width: 500px;
+      width: 100%;
+      text-align: center;
+    }
+    .title {
+      font-size: 1.75rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    .subtitle {
+      margin-bottom: 2rem;
+      color: #6b7280;
+    }
+    .radio-group {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 1.5rem;
+    }
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    input[type="email"] {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+    }
+    button {
+      background-color: #10b981;
+      color: white;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      background-color: #059669;
+    }
+    .thank-you {
+      margin-top: 2rem;
+      font-size: 1.1rem;
+      color: #374151;
+    }
+    .options-list {
+      margin-top: 3rem;
+      padding: 1.5rem;
+      background: #e0f2fe;
+      border-radius: 0.75rem;
+      color: #0f172a;
+      text-align: left;
+    }
+    .options-list h2 {
+      font-size: 1.25rem;
+      margin-bottom: 0.75rem;
+    }
+    .options-list ul {
+      list-style: disc;
+      margin-left: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="title">Join the Dosh!M8 Waitlist</div>
+    <div class="subtitle">Freedom to Live. Freedom to Earn.</div>
+    <div class="radio-group">
+      <label><input type="radio" name="userType" value="seeker" /> Gig Seeker</label>
+      <label><input type="radio" name="userType" value="poster" /> Gig Poster</label>
+    </div>
+    <div class="form-group">
+      <input type="email" id="email" placeholder="Enter your email" />
+    </div>
+    <button onclick="submitForm()">Join the Waitlist</button>
+    <div class="thank-you" id="thankYouMessage" style="display:none;">
+      🎉 You're on the list!<br>
+      ✅ <span id="seekers">0</span> Gig Seekers<br>
+      ✅ <span id="posters">0</span> Gig Posters<br>
+      📩 We'll email you soon with early access!
+    </div>
+  </div>
+
+  <div class="options-list">
+    <h2>What’s Next?</h2>
+    <ul>
+      <li>📥 Upload this page to GitHub Pages for free hosting</li>
+      <li>📊 Firebase backend will store signups by user role</li>
+      <li>🔗 Referral codes & email tracker will help with viral growth</li>
+      <li>🌐 View real-time data in Firestore or a future dashboard</li>
+    </ul>
+  </div>
+
+  <script>
+    // Replace this block with your Firebase config
+    const firebaseConfig = {
+     apiKey: "AIzaSyDh6LhCah1QXfq6Wwxz7ew2K0iEGYLgHoE",
+  authDomain: "dosh-m8-poc.firebaseapp.com",
+  projectId: "dosh-m8-poc",
+  storageBucket: "dosh-m8-poc.firebasestorage.app",
+  messagingSenderId: "162900658315",
+  appId: "1:162900658315:web:306d2fd8ad48dc28152c8e",
+  measurementId: "G-GHSMSTB28L"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    function submitForm() {
+      const userType = document.querySelector('input[name="userType"]:checked');
+      const email = document.getElementById('email').value;
+
+      if (!userType || !email) {
+        alert('Please select a role and enter your email.');
+        return;
+      }
+
+      const role = userType.value;
+      const referralCode = (Math.random() + 1).toString(36).substring(2, 8);
+
+      db.collection("waitlist").add({
+        email: email,
+        role: role,
+        referralCode: referralCode,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(() => {
+        if (role === 'seeker') seekers++;
+        if (role === 'poster') posters++;
+
+        document.getElementById('seekers').textContent = seekers;
+        document.getElementById('posters').textContent = posters;
+        document.getElementById('thankYouMessage').style.display = 'block';
+      }).catch((error) => {
+        console.error("Error saving to Firestore:", error);
+        alert("Something went wrong. Try again.");
+      });
+    }
+
+    let seekers = 0;
+    let posters = 0;
+  </script>
+</body>
+</html>
