@@ -69,6 +69,12 @@
       font-size: 1.1rem;
       color: #374151;
     }
+	<div style="margin-top: 1rem;">
+  <button onclick="copyReferral()" id="referralBtn" style="display:none;">
+    📢 Share Your Referral Link
+  </button>
+  <p id="refLinkCopied" style="display:none; color: green; margin-top: 0.5rem;">Referral link copied!</p>
+</div>
     .options-list {
       margin-top: 3rem;
       padding: 1.5rem;
@@ -141,6 +147,8 @@
         referralCode: referralCode,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
       }).then(() => {
+	  savedReferral = referralCode;
+  document.getElementById('referralBtn').style.display = 'inline-block';
         if (role === 'seeker') seekers++;
         if (role === 'poster') posters++;
 
@@ -155,6 +163,15 @@
 
     let seekers = 0;
     let posters = 0;
+	function copyReferral() {
+  const url = window.location.origin + "/Doshm8-Waitlist/?ref=" + savedReferral;
+  navigator.clipboard.writeText(url).then(() => {
+    document.getElementById('refLinkCopied').style.display = 'block';
+  });
+}
+
+let savedReferral = "";  // Global var to store code
   </script>
 </body>
 </html>
+
