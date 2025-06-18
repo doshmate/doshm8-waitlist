@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dosh!M8 Waitlist Dashboard</title>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f9fafb;
+      color: #1f2937;
+      padding: 2rem;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .stats {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 2rem;
+      font-size: 1.2rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+    th, td {
+      padding: 0.75rem;
+      border: 1px solid #e5e7eb;
+      text-align: left;
+    }
+    th {
+      background-color: #f3f4f6;
+    }
+    .timestamp {
+      font-size: 0.9rem;
+      color: #6b7280;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Dosh!M8 Signups Dashboard</h1>
+  <div class="stats">
+    <div>👤 Gig Seekers: <strong id="seekers">0</strong></div>
+    <div>📣 Gig Posters: <strong id="posters">0</strong></div>
+    <div>📊 Total: <strong id="total">0</strong></div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Referral Code</th>
+        <th>Signed Up</th>
+      </tr>
+    </thead>
+    <tbody id="dataTable">
+      <!-- Dynamic rows go here -->
+    </tbody>
+  </table>
+
+  <script>
+    // ✅ Replace with your actual Firebase project config
+    const firebaseConfig = {
+      apiKey: "AIzaSyDh6LhCah1QXfq6Wwxz7ew2K0iEGYLgHoE",
+      authDomain: "dosh-m8-poc.firebaseapp.com",
+      projectId: "dosh-m8-poc",
+      storageBucket: "dosh-m8-poc.appspot.com",
+      messagingSenderId: "162900658315",
+      appId: "1:162900658315:web:306d2fd8ad48dc28152c8e",
+      measurementId: "G-GHSMSTB28L"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const seekersEl = document.getElementById('seekers');
+    const postersEl = document.getElementById('posters');
+    const totalEl = document.getElementById('total');
+    const tableBody = document.getElementById('dataTable');
+
+    db.collection("waitlist").orderBy("timestamp", "desc").onSnapshot(snapshot => {
+      let seekers = 0;
+      let posters = 0;
+      tableBody.innerHTML = '';
+
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const email = data.email || '';
+        const role = data.role || '';
+        const referralCode = data.referralCode || '';
+        const timestamp = data.timestamp ? data.timestamp.toDate().toLocaleString() : '';
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${email}</td>
+          <td>${role}</td>
+          <td>${referralCode}</td>
+          <td class="timestamp">${timestamp}</td>
+        `;
+        tableBody.appendChild(row);
+
+        if (role === "seeker") seekers++;
+        if (role === "poster") posters++;
+      });
+
+      seekersEl.textContent = seekers;
+      postersEl.textContent = posters;
+      totalEl.textContent = seekers + posters;
+    });
+  </script>
+</body>
+</html>
