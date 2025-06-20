@@ -1,3 +1,4 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,89 +9,16 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background: #f7f9fb;
-      color: #1f2937;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      padding: 2rem;
-    }
-    .card {
-      background: white;
-      border-radius: 1rem;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-      padding: 2rem;
-      max-width: 500px;
-      width: 100%;
-      text-align: center;
-    }
-    .title {
-      font-size: 1.75rem;
-      font-weight: 600;
-      margin-bottom: 1rem;
-    }
-    .subtitle {
-      margin-bottom: 2rem;
-      color: #6b7280;
-    }
-    .radio-group {
-      display: flex;
-      justify-content: space-around;
-      margin-bottom: 1.5rem;
-    }
-    .form-group {
-      margin-bottom: 1.5rem;
-    }
-    input[type="email"] {
-      width: 100%;
-      padding: 0.75rem;
-      border: 1px solid #d1d5db;
-      border-radius: 0.5rem;
-      font-size: 1rem;
-    }
-    button {
-      background-color: #10b981;
-      color: white;
-      padding: 0.75rem 1.5rem;
-      font-size: 1rem;
-      border: none;
-      border-radius: 0.5rem;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-    button:hover {
-      background-color: #059669;
-    }
-    .thank-you {
-      margin-top: 2rem;
-      font-size: 1.1rem;
-      color: #374151;
-    }
-	<div style="margin-top: 1rem;">
-  <button onclick="copyReferral()" id="referralBtn" style="display:none;">
-    📢 Share Your Referral Link
-  </button>
-  <p id="refLinkCopied" style="display:none; color: green; margin-top: 0.5rem;">Referral link copied!</p>
-</div>
-    .options-list {
-      margin-top: 3rem;
-      padding: 1.5rem;
-      background: #e0f2fe;
-      border-radius: 0.75rem;
-      color: #0f172a;
-      text-align: left;
-    }
-    .options-list h2 {
-      font-size: 1.25rem;
-      margin-bottom: 0.75rem;
-    }
-    .options-list ul {
-      list-style: disc;
-      margin-left: 1.5rem;
-    }
+    body { font-family: 'Inter', sans-serif; background: #f7f9fb; color: #1f2937; display: flex; justify-content: center; align-items: center; flex-direction: column; padding: 2rem; }
+    .card { background: white; border-radius: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.1); padding: 2rem; max-width: 500px; width: 100%; text-align: center; }
+    .radio-group { display: flex; justify-content: space-around; margin-bottom: 1.5rem; }
+    .form-group { margin-bottom: 1.5rem; }
+    input[type="email"] { width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-size: 1rem; }
+    button { background-color: #10b981; color: white; padding: 0.75rem 1.5rem; font-size: 1rem; border: none; border-radius: 0.5rem; cursor: pointer; transition: background-color 0.2s; }
+    button:hover { background-color: #059669; }
+    .thank-you { margin-top: 2rem; font-size: 1.1rem; color: #374151; }
+    .referral-share { margin-top: 1rem; display: none; }
+    .referral-share p { color: green; margin-top: 0.5rem; }
   </style>
 </head>
 <body>
@@ -111,67 +39,69 @@
       ✅ <span id="posters">0</span> Gig Posters<br>
       📩 We'll email you soon with early access!
     </div>
+    <div class="referral-share" id="referralSection">
+      <button onclick="copyReferralLink()" id="shareReferral">📢 Share Your Referral Link</button>
+      <p id="referralCopied" style="display:none;">Referral link copied!</p>
+    </div>
   </div>
 
-  
   <script>
-    // Replace this block with your Firebase config
     const firebaseConfig = {
-     apiKey: "AIzaSyDh6LhCah1QXfq6Wwxz7ew2K0iEGYLgHoE",
-  authDomain: "dosh-m8-poc.firebaseapp.com",
-  projectId: "dosh-m8-poc",
-  storageBucket: "dosh-m8-poc.firebasestorage.app",
-  messagingSenderId: "162900658315",
-  appId: "1:162900658315:web:306d2fd8ad48dc28152c8e",
-  measurementId: "G-GHSMSTB28L"
-    };
-
+    apiKey: "AIzaSyCA4VPd7Pf6a8JyHkdF3OEG2n0Y8L9kJoc",
+    authDomain: "dosh-m8-poc-c7d80.firebaseapp.com",
+    projectId: "dosh-m8-poc-c7d80",
+    storageBucket: "dosh-m8-poc-c7d80.firebasestorage.app",
+    messagingSenderId: "109298370414",
+    appId: "1:109298370414:web:821a7f38604f417869237f"
+  };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+
+    let seekers = 0;
+    let posters = 0;
+    let savedReferralCode = "";
+    let referrerCode = null;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      const ref = params.get('ref');
+      if (ref) referrerCode = ref;
+    });
 
     function submitForm() {
       const userType = document.querySelector('input[name="userType"]:checked');
       const email = document.getElementById('email').value;
-
-      if (!userType || !email) {
-        alert('Please select a role and enter your email.');
-        return;
-      }
+      if (!userType || !email) { alert('Please select a role and enter your email.'); return; }
 
       const role = userType.value;
       const referralCode = (Math.random() + 1).toString(36).substring(2, 8);
+      savedReferralCode = referralCode;
 
       db.collection("waitlist").add({
         email: email,
         role: role,
         referralCode: referralCode,
+        referrer: referrerCode,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
       }).then(() => {
-	  savedReferral = referralCode;
-  document.getElementById('referralBtn').style.display = 'inline-block';
         if (role === 'seeker') seekers++;
         if (role === 'poster') posters++;
-
         document.getElementById('seekers').textContent = seekers;
         document.getElementById('posters').textContent = posters;
         document.getElementById('thankYouMessage').style.display = 'block';
-      }).catch((error) => {
+        document.getElementById('referralSection').style.display = 'block';
+      }).catch(error => {
         console.error("Error saving to Firestore:", error);
         alert("Something went wrong. Try again.");
       });
     }
 
-    let seekers = 0;
-    let posters = 0;
-	function copyReferral() {
-  const url = window.location.origin + "/Doshm8-Waitlist/?ref=" + savedReferral;
-  navigator.clipboard.writeText(url).then(() => {
-    document.getElementById('refLinkCopied').style.display = 'block';
-  });
-}
-
-let savedReferral = "";  // Global var to store code
+    function copyReferralLink() {
+      const url = window.location.origin + window.location.pathname + "?ref=" + savedReferralCode;
+      navigator.clipboard.writeText(url).then(() => {
+        document.getElementById('referralCopied').style.display = 'block';
+      });
+    }
   </script>
 </body>
 </html>
-
